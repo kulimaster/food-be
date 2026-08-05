@@ -21,8 +21,11 @@ scope (dashboard, ingredients DB, recipe builder, weekly planner).
   [`docs/business-description.md`](docs/business-description.md).
 - Schema design is documented in [`docs/database-design.md`](docs/database-design.md).
 - Solution: `Food.slnx`, five projects under `src/` (`Food.Shared`, `Food.Domain`,
-  `Food.Application`, `Food.Infrastructure`, `Food.Api`). `Food.Domain` is implemented;
-  the others are still empty scaffolds.
+  `Food.Application`, `Food.Infrastructure`, `Food.Api`). `Food.Domain` is fully
+  implemented; `Food.Application` has one vertical slice (create ingredient);
+  `Food.Infrastructure` and `Food.Api` are still empty scaffolds. See
+  [`docs/progress.md`](docs/progress.md) for the current status and what's next —
+  **read that file first** when picking this project back up.
 
 ## Conventions already in place
 
@@ -56,5 +59,10 @@ section once there's something to `dotnet run`.
 
 ## Related docs
 
+- [`docs/progress.md`](docs/progress.md) — **read this first**: current implementation
+  status, what's built/tested, and the next planned step.
 - [`docs/architecture.md`](docs/architecture.md) — architecture style, layering, and
   technology decisions (including open/proposed ones still needing confirmation).
+- [`docs/business-description.md`](docs/business-description.md) — business rules and
+  domain scope.
+- [`docs/database-design.md`](docs/database-design.md) — ER diagram and schema.
