@@ -1,0 +1,49 @@
+# CLAUDE.md
+
+Guidance for Claude Code (and any contributor) working in this repository.
+
+## Project overview
+
+**Food** is a REST API backend for a meal-planning / nutrition-tracking app. It supports
+daily macro tracking (calories, protein, carbs, fat, fiber), an ingredients database,
+custom recipes, favorite meals, and a weekly meal planner with shopping-list generation.
+See the original design brief in project conversation history for full screen-by-screen
+scope (dashboard, ingredients DB, recipe builder, weekly planner).
+
+## Stack & status
+
+- **Language / runtime:** C# on .NET 10 (SDK pinned in `global.json`).
+- **API style:** REST.
+- Database, auth provider integration, and architecture layering are documented in
+  [`docs/architecture.md`](docs/architecture.md) — check there before assuming a choice
+  hasn't been made.
+- No solution or project files exist yet. This section and the commands below will be
+  filled in as soon as the first project is scaffolded.
+
+## Conventions already in place
+
+- **Code style / naming:** enforced via [`.editorconfig`](.editorconfig). Naming rules
+  and correctness-oriented rules are `warning` severity; purely aesthetic preferences
+  (e.g. `var` usage) are `suggestion`.
+- **Build settings:** [`Directory.Build.props`](Directory.Build.props) enables nullable
+  reference types, implicit usings, and .NET analyzers solution-wide. Warnings are
+  treated as errors in `Release` builds only (Debug stays fast to iterate on).
+- **SDK version:** pinned in [`global.json`](global.json), `rollForward: latestPatch`.
+
+## Build / test / run
+
+_Not applicable yet — no solution exists. Update this section the moment `dotnet new`
+scaffolding lands so these commands are never stale._
+
+## Working agreements for this repo
+
+- **Small, incremental steps.** One change at a time, not batched or speculative work.
+- **Ask when something is ambiguous or a judgment call** (naming, severity levels,
+  library choices) rather than assuming — the user prefers to be asked.
+- **Always confirm before `git commit`**, and confirm again separately before `git push`.
+- Don't add abstractions, config, or tooling beyond what the current step calls for.
+
+## Related docs
+
+- [`docs/architecture.md`](docs/architecture.md) — architecture style, layering, and
+  technology decisions (including open/proposed ones still needing confirmation).
