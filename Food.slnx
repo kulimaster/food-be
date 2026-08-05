@@ -6,4 +6,7 @@
     <Project Path="src/Food.Infrastructure/Food.Infrastructure.csproj" />
     <Project Path="src/Food.Shared/Food.Shared.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Food.Domain.Tests/Food.Domain.Tests.csproj" />
+  </Folder>
 </Solution>
