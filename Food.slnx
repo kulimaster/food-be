@@ -7,6 +7,7 @@
     <Project Path="src/Food.Shared/Food.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Food.Application.Tests/Food.Application.Tests.csproj" />
     <Project Path="tests/Food.Domain.Tests/Food.Domain.Tests.csproj" />
   </Folder>
 </Solution>
