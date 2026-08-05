@@ -17,8 +17,12 @@ scope (dashboard, ingredients DB, recipe builder, weekly planner).
 - Database, auth provider integration, and architecture layering are documented in
   [`docs/architecture.md`](docs/architecture.md) — check there before assuming a choice
   hasn't been made.
-- No solution or project files exist yet. This section and the commands below will be
-  filled in as soon as the first project is scaffolded.
+- Business rules and domain scope are documented in
+  [`docs/business-description.md`](docs/business-description.md).
+- Schema design is documented in [`docs/database-design.md`](docs/database-design.md).
+- Solution: `Food.slnx`, five projects under `src/` (`Food.Shared`, `Food.Domain`,
+  `Food.Application`, `Food.Infrastructure`, `Food.Api`). `Food.Domain` is implemented;
+  the others are still empty scaffolds.
 
 ## Conventions already in place
 
@@ -32,8 +36,15 @@ scope (dashboard, ingredients DB, recipe builder, weekly planner).
 
 ## Build / test / run
 
-_Not applicable yet — no solution exists. Update this section the moment `dotnet new`
-scaffolding lands so these commands are never stale._
+```bash
+dotnet build                 # build the whole solution (Debug)
+dotnet build -c Release      # Release build; warnings are treated as errors here
+dotnet test                  # run all test projects
+dotnet test tests/Food.Domain.Tests   # run a single test project
+```
+
+No runnable API yet (`Food.Api` has no endpoints beyond the template). Update this
+section once there's something to `dotnet run`.
 
 ## Working agreements for this repo
 
