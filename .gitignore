@@ -45,6 +45,10 @@ PublishScripts/
 appsettings.*.local.json
 secrets.json
 
+# Claude Code personal overrides (may contain locally-captured secrets in
+# accumulated permission rules)
+.claude/settings.local.json
+
 # Rider/ReSharper
 _ReSharper*/
 *.[Rr]e[Ss]harper
