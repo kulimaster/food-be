@@ -66,7 +66,12 @@ as steps complete.
   while getting Postgres running. Worth circling back to before this server handles
   anything real.
 - Step 6 (scoped `deploy` user) isn't needed until CI/CD is actually being wired up.
-- Local Postgres for local development: deliberately not set up yet — nothing in the
-  codebase needs it until `Food.Infrastructure` exists. Recommended approach when it's
-  time: Docker Desktop (or Podman Desktop) on Windows running a local container, same
-  pattern as the VPS, not a native Windows install.
+- **Local Postgres: done.** Native PostgreSQL 18 was already installed on this machine
+  (`D:\Program Files\PostgreSQL\18`, Windows service `postgresql-x64-18`, running) —
+  not a local container, since this dev machine's CPU virtualization is disabled in
+  BIOS and not accessible to enable (display goes blank on the BIOS screen), ruling out
+  WSL2 and therefore Podman/Docker Desktop entirely. A dedicated role/database were
+  created (`martin` / `food_dev`), deliberately matching the VPS `development`
+  environment's credentials for simplicity. This is a one-off deviation from
+  "containers everywhere" for local dev only; the VPS environments are unaffected and
+  stay on Podman.
