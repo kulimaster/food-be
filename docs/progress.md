@@ -5,7 +5,7 @@ Status snapshot for picking this project back up without re-deriving context.
 as the first thing to read (and the last thing to update) in any future session.
 
 Last updated: 2026-08-07. Everything below is pushed to `origin/main`, latest commit
-`be7aefa`.
+`72a23be`.
 
 **Repo location:** `C:\Users\marti\repo\food-be` (moved from `D:\repo\food-be` at some
 point — a stale, untracked copy of `docs\` may still exist at the old `D:\` path;
@@ -40,36 +40,48 @@ true`), `CLAUDE.md` (working agreements + build/test commands).
   exactly one" value object used by `MealLog`/`FavoriteMeal`/`PlannedMeal`), Activities.
   **`Food.Domain.Tests`**: 32 tests, all passing.
 
-- **`Food.Application`** — one complete vertical slice: **create ingredient**
-  (`Ingredients/CreateIngredient/`: command, handler, FluentValidation validator).
+- **`Food.Application`** — two complete vertical slices:
+  - **Create ingredient** (`Ingredients/CreateIngredient/`).
+  - **User & profile + macro target** (`Users/`): `CreateUser`, `SetUserProfile`
+    (creates/updates the profile, then auto-recalculates and persists a new
+    `NutritionTarget` via the already-tested `MacroTargetCalculator`),
+    `GetCurrentNutritionTarget`.
   Plumbing in place: MediatR 14.x + `ValidationBehavior` pipeline + FluentValidation,
   wired via `DependencyInjection.AddApplication()`. Ports: `IClock`, `IUnitOfWork`,
-  `IIngredientRepository` — all implemented now (see Infrastructure below).
-  **`Food.Application.Tests`**: 13 tests (handler + validator), hand-written fakes.
+  `IIngredientRepository`, `IUserRepository`, `IUserProfileRepository`,
+  `INutritionTargetRepository` — all implemented (see Infrastructure below).
+  **`Food.Application.Tests`**: 13 tests (Ingredients slice only so far; Users slice
+  has no unit tests yet).
   **Note on MediatR licensing**: v13+ (we're on 14.2.0) is dual RPL-1.5/commercial,
   not MIT. Decision made: stay on it, acceptable for a solo/small project under the
   free Community tier. Revisit if this ever becomes a commercial product at scale.
+  **No real auth**: `UserId`/`CreatedByUserId` are just whatever the request body
+  says — deliberately deferred (see "Next step" below), but now load-bearing across
+  two slices.
 
-- **`Food.Infrastructure`** — implemented, scoped to what `CreateIngredient` needs:
-  `FoodDbContext` + `IngredientConfiguration` (EF Core owned type for
-  `MacroBreakdown`; `Tags` as an owned collection backed by the private `_tags` field).
-  `IngredientRepository`, `UnitOfWork`, `SystemClock` implement the Application ports.
+- **`Food.Infrastructure`** — `FoodDbContext` + configurations for `Ingredient`,
+  `User`, `UserProfile`, `NutritionTarget`. `MacroBreakdown` mapped as an EF Core owned
+  type everywhere it appears; enums (`Sex`, `ActivityLevel`, `Goal`) stored as
+  **strings**, not raw ints (avoids silent corruption if enum order ever changes).
   **Known simplification**: `ingredient_tags` is mapped per-ingredient, not as the
   shared/normalized many-to-many `database-design.md` originally envisioned — the
   Domain's `IngredientTag` is a value object with no identity, so true cross-ingredient
   sharing would require making it an entity first. Deferred; matches the doc's existing
   open question about whether tags should be fixed/seeded or user-extensible.
   Local `dotnet-ef` tool pinned via manifest (`dotnet-tools.json` at repo root, not
-  `.config/` — non-standard location but confirmed working). First migration
-  (`InitialCreate`) generated and applied to the local `food_dev` database.
+  `.config/` — non-standard location but confirmed working). Two migrations applied
+  (`InitialCreate`, `AddUsersAndNutritionTargets`) to the local `food_dev` database.
   `MealLog`/`FavoriteMeal`/`PlannedMeal`/`LoggableItem` are **not** mapped yet — that's
   a harder problem (the owned value object references *other entities* conditionally)
   and nothing needs it yet.
 
-- **`Food.Api`** — wired: `AddApplication()` + `AddInfrastructure()` in `Program.cs`,
-  one real endpoint: `POST /api/v1/ingredients`. Verified end-to-end with a live local
-  Postgres (`curl` → 201 Created → confirmed row in `ingredients` + `ingredient_tags`).
-  No auth, no other endpoints yet.
+- **`Food.Api`** — wired: `AddApplication()` + `AddInfrastructure()` in `Program.cs`.
+  Endpoints: `POST /api/v1/ingredients`; `POST /api/v1/users`,
+  `PUT /api/v1/users/{userId}/profile`, `GET /api/v1/users/{userId}/nutrition-target`.
+  JSON enums serialize as strings (`JsonStringEnumConverter`), matching DB storage.
+  **Scalar** interactive API docs wired at `/scalar` in Development (`.claude/launch.json`
+  lets the `food-api` config be previewed via the Browser tooling). No auth yet.
+  Verified end-to-end against live local Postgres for both slices.
 
 All 45 tests pass; solution builds clean (0 warnings/errors) in Debug and Release.
 
@@ -91,18 +103,30 @@ All 45 tests pass; solution builds clean (0 warnings/errors) in Debug and Releas
 
 ## Next step
 
-No single blocking next step right now — a few reasonable directions, pick based on
-what's most valuable:
+Business-logic roadmap (from `business-description.md`), roughly in dependency order —
+decided to keep deferring auth (see below) and build these next, one slice at a time:
 
-1. **More Application/Infrastructure vertical slices** — recipes, meal logging, user
-   onboarding (would exercise the already-tested `MacroTargetCalculator`), etc. Each
-   follows the same pattern now established by `CreateIngredient`.
-2. **VPS hardening** — finish SSH (`PermitRootLogin prohibit-password`,
-   `PasswordAuthentication no`) and firewall (ufw), left open while getting Postgres
-   running. Worth doing before this server handles anything real.
-3. **`MealLog`/`FavoriteMeal`/`PlannedMeal` EF Core mapping** — the harder mapping
-   problem deferred during Infrastructure work (owned value object referencing other
-   entities conditionally). Needed once meal logging becomes a real use case.
+- [x] Ingredients: create
+- [ ] Ingredients: list/search, get by id
+- [x] Users & profile: create user, set profile + auto-calculate target, get target
+- [ ] Users & profile: manual target override (quick follow-up to the slice above)
+- [ ] Recipes: create (ingredients + quantities), get (computed macros), list
+- [ ] Meal logging: log a meal (raw ingredient or recipe portion), get a day's logs,
+      **daily dashboard query** (macros vs. target) — needs the harder
+      `LoggableItem`/`MealLog` EF mapping deferred during Infrastructure work
+- [ ] Favorites: save/list/remove a favorite meal
+- [ ] Activity logging: log activity, adjust the day's calorie target
+- [ ] Weekly planner: plan a meal for a future date, check planned macros vs. target
+      (same `LoggableItem` mapping problem as meal logging)
+- [ ] Shopping list: aggregate ingredients across planned meals in a date range
+
+Also open, not blocking:
+- **VPS hardening** — finish SSH (`PermitRootLogin prohibit-password`,
+  `PasswordAuthentication no`) and firewall (ufw), left open while getting Postgres
+  running. Worth doing before this server handles anything real.
+- **Auth** — deliberately still deferred (decided 2026-08-07) despite almost every
+  slice above being per-user data. Revisit as its own dedicated step once more
+  business logic exists to protect, per the discussion in this session.
 
 ## Other open decisions (not blocking, but unresolved)
 
