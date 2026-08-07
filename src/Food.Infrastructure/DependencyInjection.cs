@@ -1,0 +1,26 @@
+using Food.Application.Abstractions;
+using Food.Application.Ingredients;
+using Food.Infrastructure.Persistence;
+using Food.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Food.Infrastructure;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("FoodDb")
+            ?? throw new InvalidOperationException("Connection string 'FoodDb' is not configured.");
+
+        services.AddDbContext<FoodDbContext>(options => options.UseNpgsql(connectionString));
+
+        services.AddScoped<IIngredientRepository, IngredientRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddSingleton<IClock, SystemClock>();
+
+        return services;
+    }
+}
