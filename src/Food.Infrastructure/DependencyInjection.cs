@@ -1,5 +1,6 @@
 using Food.Application.Abstractions;
 using Food.Application.Ingredients;
+using Food.Application.Users;
 using Food.Infrastructure.Persistence;
 using Food.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,9 @@ public static class DependencyInjection
         services.AddDbContext<FoodDbContext>(options => options.UseNpgsql(connectionString));
 
         services.AddScoped<IIngredientRepository, IngredientRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+        services.AddScoped<INutritionTargetRepository, NutritionTargetRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddSingleton<IClock, SystemClock>();
 
