@@ -1,4 +1,6 @@
 using Food.Application.Ingredients.CreateIngredient;
+using Food.Application.Ingredients.GetIngredientById;
+using Food.Application.Ingredients.ListIngredients;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +30,22 @@ public sealed class IngredientsController : ControllerBase
         var id = await _sender.Send(command, cancellationToken);
 
         return Created($"/api/v1/ingredients/{id}", new { id });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> List([FromQuery] string? search, [FromQuery] string? tag, CancellationToken cancellationToken)
+    {
+        var ingredients = await _sender.Send(new ListIngredientsQuery(search, tag), cancellationToken);
+
+        return Ok(ingredients);
+    }
+
+    [HttpGet("{id:long}")]
+    public async Task<IActionResult> GetById(long id, CancellationToken cancellationToken)
+    {
+        var ingredient = await _sender.Send(new GetIngredientByIdQuery(id), cancellationToken);
+
+        return ingredient is null ? NotFound() : Ok(ingredient);
     }
 }
 

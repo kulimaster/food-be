@@ -12,4 +12,10 @@ public sealed class FakeIngredientRepository : IIngredientRepository
         Added.Add(ingredient);
         return Task.CompletedTask;
     }
+
+    public Task<Ingredient?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
+        Task.FromResult(Added.SingleOrDefault(i => i.Id == id));
+
+    public Task<IReadOnlyList<Ingredient>> ListAsync(string? search, string? tag, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Ingredient>>(Added.AsReadOnly());
 }
