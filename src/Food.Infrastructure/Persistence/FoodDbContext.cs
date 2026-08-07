@@ -1,5 +1,6 @@
 using Food.Domain.Ingredients;
 using Food.Domain.Nutrition;
+using Food.Domain.Recipes;
 using Food.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ public sealed class FoodDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<NutritionTarget> NutritionTargets => Set<NutritionTarget>();
+    public DbSet<Recipe> Recipes => Set<Recipe>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
