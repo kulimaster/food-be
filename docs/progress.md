@@ -5,7 +5,7 @@ Status snapshot for picking this project back up without re-deriving context.
 as the first thing to read (and the last thing to update) in any future session.
 
 Last updated: 2026-08-07. Everything below is pushed to `origin/main`, latest commit
-`72a23be`.
+`8aa52cd`.
 
 **Repo location:** `C:\Users\marti\repo\food-be` (moved from `D:\repo\food-be` at some
 point — a stale, untracked copy of `docs\` may still exist at the old `D:\` path;
@@ -45,7 +45,9 @@ true`), `CLAUDE.md` (working agreements + build/test commands).
   - **User & profile + macro target** (`Users/`): `CreateUser`, `SetUserProfile`
     (creates/updates the profile, then auto-recalculates and persists a new
     `NutritionTarget` via the already-tested `MacroTargetCalculator`),
-    `GetCurrentNutritionTarget`.
+    `GetCurrentNutritionTarget`, `SetManualNutritionTarget` (user overrides the
+    calculated target directly — just another versioned row with
+    `IsManualOverride=true`, no special-casing needed in the read path).
   Plumbing in place: MediatR 14.x + `ValidationBehavior` pipeline + FluentValidation,
   wired via `DependencyInjection.AddApplication()`. Ports: `IClock`, `IUnitOfWork`,
   `IIngredientRepository`, `IUserRepository`, `IUserProfileRepository`,
@@ -109,7 +111,7 @@ decided to keep deferring auth (see below) and build these next, one slice at a 
 - [x] Ingredients: create
 - [ ] Ingredients: list/search, get by id
 - [x] Users & profile: create user, set profile + auto-calculate target, get target
-- [ ] Users & profile: manual target override (quick follow-up to the slice above)
+- [x] Users & profile: manual target override
 - [ ] Recipes: create (ingredients + quantities), get (computed macros), list
 - [ ] Meal logging: log a meal (raw ingredient or recipe portion), get a day's logs,
       **daily dashboard query** (macros vs. target) — needs the harder
