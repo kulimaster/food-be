@@ -1,5 +1,6 @@
 using Food.Application.Users.CreateUser;
 using Food.Application.Users.GetCurrentNutritionTarget;
+using Food.Application.Users.SetManualNutritionTarget;
 using Food.Application.Users.SetUserProfile;
 using Food.Domain.Enums;
 using MediatR;
@@ -49,6 +50,25 @@ public sealed class UsersController : ControllerBase
 
         return macros is null ? NotFound() : Ok(macros);
     }
+
+    [HttpPut("{userId:long}/nutrition-target")]
+    public async Task<IActionResult> SetManualNutritionTarget(
+        long userId,
+        SetManualNutritionTargetRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new SetManualNutritionTargetCommand(
+            userId,
+            request.Calories,
+            request.ProteinG,
+            request.CarbsG,
+            request.FatG,
+            request.FiberG);
+
+        var macros = await _sender.Send(command, cancellationToken);
+
+        return Ok(macros);
+    }
 }
 
 public sealed record CreateUserRequest(string Email, string DisplayName, string Timezone);
@@ -60,3 +80,10 @@ public sealed record SetUserProfileRequest(
     Sex Sex,
     ActivityLevel ActivityLevel,
     Goal Goal);
+
+public sealed record SetManualNutritionTargetRequest(
+    decimal Calories,
+    decimal ProteinG,
+    decimal CarbsG,
+    decimal FatG,
+    decimal FiberG);
