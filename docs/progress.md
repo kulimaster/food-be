@@ -4,9 +4,9 @@ Status snapshot for picking this project back up without re-deriving context.
 **Update this file at the end of a work session** so it stays trustworthy — treat it
 as the first thing to read (and the last thing to update) in any future session.
 
-Last updated: 2026-08-08. Activity logging slice added this session, on top of
-Favorites (`bfb911e`) and the earlier Meal logging/Dashboard work
-(`72dc032`/`7b640b9`, `52c5417`, `c0cf8cb`); not yet committed as of this writing.
+Last updated: 2026-08-08. Committed locally as `d9f0fdc` (Activity logging, on top of
+Favorites at `bfb911e` and Meal logging/Dashboard at `72dc032`/`7b640b9`), not yet
+pushed to `origin/main`.
 
 **Repo location:** `C:\Users\marti\repo\food-be` (moved from `D:\repo\food-be` at some
 point — a stale, untracked copy of `docs\` may still exist at the old `D:\` path;
