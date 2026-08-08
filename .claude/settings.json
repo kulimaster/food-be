@@ -25,5 +25,10 @@
       "Bash(git commit *)",
       "Bash(git push *)"
     ]
+  },
+  "sandbox": {
+    "network": {
+      "allowedDomains": ["localhost", "127.0.0.1"]
+    }
   }
 }
