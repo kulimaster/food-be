@@ -4,9 +4,10 @@ Status snapshot for picking this project back up without re-deriving context.
 **Update this file at the end of a work session** so it stays trustworthy — treat it
 as the first thing to read (and the last thing to update) in any future session.
 
-Last updated: 2026-08-08. Committed locally as `d9f0fdc` (Activity logging, on top of
-Favorites at `bfb911e` and Meal logging/Dashboard at `72dc032`/`7b640b9`), not yet
-pushed to `origin/main`.
+Last updated: 2026-08-08. Weekly planner + Shopping list added this session — **this
+completes the full business-logic roadmap** from `business-description.md`. On top of
+Activity logging (`d9f0fdc`), Favorites (`bfb911e`), and Meal logging/Dashboard
+(`72dc032`/`7b640b9`); not yet committed as of this writing.
 
 **Repo location:** `C:\Users\marti\repo\food-be` (moved from `D:\repo\food-be` at some
 point — a stale, untracked copy of `docs\` may still exist at the old `D:\` path;
@@ -59,7 +60,7 @@ true`), `CLAUDE.md` (working agreements + build/test commands).
   `FromRecipe`/`FromIngredient` factories) unchanged.
   **`Food.Domain.Tests`**: 32 tests, all passing.
 
-- **`Food.Application`** — seven complete vertical slices:
+- **`Food.Application`** — nine complete vertical slices:
   - **Ingredients** (`Ingredients/`): `CreateIngredient`, `ListIngredients` (search by
     name, filter by tag), `GetIngredientById`. `IngredientDto` flattens
     `MacroBreakdown`/`Tags` into a clean API shape rather than serializing Domain types
@@ -105,22 +106,41 @@ true`), `CLAUDE.md` (working agreements + build/test commands).
     defense-in-depth given `docs/database-design.md`'s enumerable-bigint-id warning,
     even with no real auth yet). `FavoriteMealDto` flattens `Item` the same way as
     `MealLogDto`.
+  - **Planning** (`Planning/`): `PlanMeal` (identical shape/validation to `LogMeal`,
+    just `PlanDate` instead of `LogDate`), `GetDayPlannedMeals`, `GetPlannedDashboard`
+    (planned macros vs. target for a date — same shape as `GetDailyDashboard` but
+    **no** activity-calorie adjustment: the planner targets future days that have no
+    logged activity yet, so it checks against the plain `NutritionTarget`). No
+    remove/edit of a planned meal yet — wasn't part of the roadmap wording ("plan a
+    meal ... check planned macros vs. target"), left as a follow-up if needed.
+  - **ShoppingList** (`ShoppingList/`): `GetShoppingList` — aggregates ingredient
+    quantities across all planned meals in a `[StartDate, EndDate]` range, grouped by
+    ingredient. Pure read/query, no new table (per `database-design.md`'s "Deliberately
+    not a table" note — a stored, checkable-off list is a different, deferred problem).
+    Handles **both** planned-meal sources per `business-description.md` ("planned
+    recipes *and* standalone ingredients"): a direct ingredient contributes its
+    `QuantityGrams` as-is; a recipe contributes each `RecipeIngredient.Quantity.Grams`
+    scaled by `ServingsCount / Recipe.Servings` — **not** a flat multiply by
+    `ServingsCount`, since `RecipeIngredient.Quantity` is the amount for the *whole*
+    recipe (all servings), the same convention `Recipe.MacrosPerServing()` relies on.
+    Caught this during E2E verification (a 2-serving recipe was initially about to
+    double-count) before considering the slice done.
   Plumbing in place: MediatR 14.x + `ValidationBehavior` pipeline + FluentValidation,
   wired via `DependencyInjection.AddApplication()`. Ports: `IClock`, `IUnitOfWork`,
   `IIngredientRepository`, `IRecipeRepository`, `IUserRepository`,
   `IUserProfileRepository`, `INutritionTargetRepository`, `IMealLogRepository`,
-  `IFavoriteMealRepository`, `IActivityLogRepository` — all implemented (see
-  Infrastructure below).
+  `IFavoriteMealRepository`, `IActivityLogRepository`, `IPlannedMealRepository` — all
+  implemented (see Infrastructure below).
   **`Food.Application.Tests`**: 13 tests (Ingredients `CreateIngredient` slice only;
   everything added since, including this session's Logging/Dashboard/Favorites/
-  Activities slices, has no unit tests yet — verified via manual end-to-end testing
-  instead, matching the precedent set by the Recipes slice).
+  Activities/Planning/ShoppingList slices, has no unit tests yet — verified via manual
+  end-to-end testing instead, matching the precedent set by the Recipes slice).
   **Note on MediatR licensing**: v13+ (we're on 14.2.0) is dual RPL-1.5/commercial,
   not MIT. Decision made: stay on it, acceptable for a solo/small project under the
   free Community tier. Revisit if this ever becomes a commercial product at scale.
   **No real auth**: `UserId`/`CreatedByUserId` are just whatever the request body
   says — deliberately deferred (see "Next step" below), but now load-bearing across
-  seven slices.
+  all nine slices.
 
 - **`Food.Infrastructure`** — `FoodDbContext` + configurations for `Ingredient`,
   `User`, `UserProfile`, `NutritionTarget`, `Recipe`, `RecipeIngredient`.
@@ -139,32 +159,37 @@ true`), `CLAUDE.md` (working agreements + build/test commands).
   sharing would require making it an entity first. Deferred; matches the doc's existing
   open question about whether tags should be fixed/seeded or user-extensible.
   Local `dotnet-ef` tool pinned via manifest (`dotnet-tools.json` at repo root, not
-  `.config/` — non-standard location but confirmed working). Six migrations applied
+  `.config/` — non-standard location but confirmed working). Seven migrations applied
   (`InitialCreate`, `AddUsersAndNutritionTargets`, `AddRecipes`, `AddMealLogs`,
-  `AddFavoriteMeals`, `AddActivityLogs`) to the local `food_dev` database.
+  `AddFavoriteMeals`, `AddActivityLogs`, `AddPlannedMeals`) to the local `food_dev`
+  database.
   **`ActivityLog` mapped** — plain scalar entity (`ActivityLogConfiguration`), no owned
   types or FKs needed since it doesn't touch `LoggableItem`. Straightforward compared
-  to `MealLog`/`FavoriteMeal`.
-  **`MealLog`/`FavoriteMeal`/`LoggableItem` now mapped** — this was the deferred
-  "harder problem" (an owned value object that conditionally references *other
-  entities*), solved once for `MealLogConfiguration` and reused as-is for
-  `FavoriteMealConfiguration`: `OwnsOne(x => x.Item, ...)`, and *within* that
-  owned-type builder, `HasOne(i => i.Recipe)`/`HasOne(i => i.Ingredient)` as ordinary
-  (optional) entity relationships with shadow FK properties explicitly
-  named/column-named `RecipeId`/`IngredientId` (EF's default would have prefixed them
-  `Item_RecipeId`/`Item_IngredientId` since they live inside an owned type —
-  overridden to match this codebase's existing unprefixed-FK convention from
-  `recipe_ingredients`), plus a nested `OwnsOne(i => i.Quantity, ...)`
-  (owned-type-inside-owned-type, supported since EF Core 5). A `CHECK` constraint
-  (`CK_meal_logs_exactly_one_source` / `CK_favorite_meals_exactly_one_source`)
+  to `MealLog`/`FavoriteMeal`/`PlannedMeal`.
+  **`MealLog`/`FavoriteMeal`/`PlannedMeal`/`LoggableItem` all mapped** — this was the
+  deferred "harder problem" (an owned value object that conditionally references
+  *other entities*), solved once for `MealLogConfiguration` and reused as-is (same
+  shape, different table/columns) for `FavoriteMealConfiguration` and
+  `PlannedMealConfiguration`: `OwnsOne(x => x.Item, ...)`, and *within* that owned-type
+  builder, `HasOne(i => i.Recipe)`/`HasOne(i => i.Ingredient)` as ordinary (optional)
+  entity relationships with shadow FK properties explicitly named/column-named
+  `RecipeId`/`IngredientId` (EF's default would have prefixed them `Item_RecipeId`/
+  `Item_IngredientId` since they live inside an owned type — overridden to match this
+  codebase's existing unprefixed-FK convention from `recipe_ingredients`), plus a
+  nested `OwnsOne(i => i.Quantity, ...)` (owned-type-inside-owned-type, supported since
+  EF Core 5). A `CHECK` constraint (`CK_meal_logs_exactly_one_source` /
+  `CK_favorite_meals_exactly_one_source` / `CK_planned_meals_exactly_one_source`)
   enforces exactly one of `RecipeId`/`IngredientId` is set in each table, matching
   `database-design.md`. Required the `LoggableItem` Domain change noted above.
-  `Recipe`/`Ingredient` FKs use `DeleteBehavior.Restrict` (same reasoning as
-  `recipe_ingredients`: don't cascade-delete/silently orphan a user's log or favorites
-  history).
-  `PlannedMeal` is still **not** mapped — nothing needs it yet (the Weekly planner is
-  still a later roadmap item), but the same `LoggableItem` mapping pattern now applies
-  directly when it is.
+  `Recipe`/`Ingredient` FKs use `DeleteBehavior.Restrict` everywhere (same reasoning as
+  `recipe_ingredients`: don't cascade-delete/silently orphan a user's log, favorites,
+  or plan history). `PlannedMealRepository` additionally has a `ListForRangeAsync`
+  (`PlanDate` between two dates) alongside the usual `ListForDayAsync`, needed by the
+  Shopping list query — both `Include(p => p.Item.Recipe!).ThenInclude(r =>
+  r.Ingredients).ThenInclude(ri => ri.Ingredient)` so a recipe-based planned meal's
+  full ingredient breakdown is loaded, not just the recipe itself.
+  No new table for the shopping list itself — it's computed on demand from
+  `PlannedMeal`/`Recipe`/`RecipeIngredient` at query time, per `database-design.md`.
 
 - **`Food.Api`** — wired: `AddApplication()` + `AddInfrastructure()` in `Program.cs`.
   Endpoints:
@@ -187,6 +212,13 @@ true`), `CLAUDE.md` (working agreements + build/test commands).
   - `POST /api/v1/users/{userId}/activity-logs` (body: `logDate`, `activityType`,
     `durationMinutes`, `caloriesBurned`),
     `GET /api/v1/users/{userId}/activity-logs?date=` (defaults to today)
+  - `POST /api/v1/users/{userId}/planned-meals` (body: `planDate`, `mealSlot`, plus
+    either `recipeId`+`servingsCount` or `ingredientId`+`quantityGrams`),
+    `GET /api/v1/users/{userId}/planned-meals?date=` (defaults to today)
+  - `GET /api/v1/users/{userId}/planned-dashboard?date=` (defaults to today; 404 if no
+    `NutritionTarget` exists yet for that user/date — same contract as `/dashboard`)
+  - `GET /api/v1/users/{userId}/shopping-list?startDate=&endDate=` (both required,
+    query-string bound `DateOnly`; `endDate < startDate` is a validation error)
   JSON enums serialize as strings (`JsonStringEnumConverter`), matching DB storage.
   **Scalar** interactive API docs wired at `/scalar` in Development (`.claude/launch.json`
   lets the `food-api` config be previewed via the Browser tooling). No auth yet.
@@ -197,17 +229,21 @@ true`), `CLAUDE.md` (working agreements + build/test commands).
   response. Reconfirmed this session via `LogMeal` with both/neither of
   `recipeId`/`ingredientId`. Not yet fixed; worth doing before this is exposed beyond
   local dev.
-  Verified end-to-end against live local Postgres for all seven slices — including
+  Verified end-to-end against live local Postgres for all nine slices — including
   logging one ingredient-based and one recipe-based meal, fetching the day's logs,
   saving/listing/deleting favorites, confirming a second user gets 404 (not someone
-  else's data) when deleting a favorite they don't own, and logging a 300-kcal
-  activity and confirming the dashboard's target went from 2509 → 2809 kcal
-  (`remaining` shifting by the same +300) while protein/carbs/fat/fiber targets stayed
-  untouched.
+  else's data) when deleting a favorite they don't own, logging a 300-kcal activity
+  and confirming the dashboard's target went from 2509 → 2809 kcal (`remaining`
+  shifting by the same +300) while protein/carbs/fat/fiber targets stayed untouched,
+  and planning a 1-serving portion of the 2-serving "Banana Oat Bowl" recipe plus a
+  raw 100g banana across two future days — confirming both the planned-dashboard math
+  and (after catching and fixing the recipe-scaling bug above) the shopping list
+  correctly totaling 200g banana (100g recipe-scaled + 100g direct) and 105g oats
+  (25g recipe-scaled + 80g direct) across the range.
 
 All 45 tests pass (no new automated tests added for Logging/Dashboard/Favorites/
-Activities, consistent with how Recipes and Users shipped — see the
-`Food.Application.Tests` note above); solution builds clean (0 warnings/errors) in
+Activities/Planning/ShoppingList, consistent with how Recipes and Users shipped — see
+the `Food.Application.Tests` note above); solution builds clean (0 warnings/errors) in
 Debug and Release.
 
 ## Infrastructure / deployment (see `docs/deployment.md` for full detail)
@@ -228,8 +264,7 @@ Debug and Release.
 
 ## Next step
 
-Business-logic roadmap (from `business-description.md`), roughly in dependency order —
-decided to keep deferring auth (see below) and build these next, one slice at a time:
+**The full business-logic roadmap from `business-description.md` is now built:**
 
 - [x] Ingredients: create, list/search, get by id
 - [x] Users & profile: create user, set profile + auto-calculate target, get target,
@@ -243,20 +278,30 @@ decided to keep deferring auth (see below) and build these next, one slice at a 
       `recipeId`/`ingredientId`, not a `favoriteMealId`; `business-description.md`
       calls this out as a third valid source but it wasn't part of this slice's scope)
 - [x] Activity logging: log activity, adjust the day's calorie target
-- [ ] Weekly planner: plan a meal for a future date, check planned macros vs. target
-      (`PlannedMeal` isn't EF-mapped yet, but reuses the `LoggableItem` mapping
-      pattern established for `MealLog` this session)
-- [ ] Shopping list: aggregate ingredients across planned meals in a date range
+- [x] Weekly planner: plan a meal for a future date, check planned macros vs. target
+      (no remove/edit of a planned meal yet — see the Planning note above)
+- [x] Shopping list: aggregate ingredients across planned meals in a date range
 
-Also open, not blocking:
-- **Global exception handling** — see the `Food.Api` gap noted above. Not urgent for
-  local dev, but should land before any real exposure.
+There is no next roadmap item to pull from `business-description.md` — every screen it
+describes has a working API surface. What's left is cross-cutting hardening, not new
+business logic:
+
+- **Auth** — deliberately deferred throughout (decided 2026-08-07), but now the most
+  load-bearing gap: all nine slices trust a client-supplied `userId`/`CreatedByUserId`
+  with zero verification, and `docs/database-design.md` already flags that `bigint`
+  identity PKs are enumerable. With the roadmap complete, this is the natural next
+  step — there's nothing left to build that doesn't need it.
+- **Global exception handling** — see the `Food.Api` gap noted above. Reconfirmed
+  across four different slices this session/previous sessions (Recipe, Logging,
+  ShoppingList validation failures) as the same raw-500 behavior; still not fixed.
+  Cheap, mechanical, and worth doing before or alongside auth.
 - **VPS hardening** — finish SSH (`PermitRootLogin prohibit-password`,
   `PasswordAuthentication no`) and firewall (ufw), left open while getting Postgres
   running. Worth doing before this server handles anything real.
-- **Auth** — deliberately still deferred (decided 2026-08-07) despite almost every
-  slice above being per-user data. Revisit as its own dedicated step once more
-  business logic exists to protect.
+- Test coverage — `Food.Application.Tests` still only covers the original
+  `CreateIngredient` slice (13 tests); every slice added since (8 of them) was
+  verified manually via curl instead. Fine for a solo project moving fast, but worth
+  a dedicated pass at some point rather than deferring indefinitely.
 
 ## Other open decisions (not blocking, but unresolved)
 

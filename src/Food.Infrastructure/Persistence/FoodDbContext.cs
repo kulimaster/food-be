@@ -2,6 +2,7 @@ using Food.Domain.Activities;
 using Food.Domain.Ingredients;
 using Food.Domain.Logging;
 using Food.Domain.Nutrition;
+using Food.Domain.Planning;
 using Food.Domain.Recipes;
 using Food.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ public sealed class FoodDbContext : DbContext
     public DbSet<MealLog> MealLogs => Set<MealLog>();
     public DbSet<FavoriteMeal> FavoriteMeals => Set<FavoriteMeal>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+    public DbSet<PlannedMeal> PlannedMeals => Set<PlannedMeal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
