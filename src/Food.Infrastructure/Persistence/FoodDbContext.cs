@@ -19,6 +19,7 @@ public sealed class FoodDbContext : DbContext
     public DbSet<NutritionTarget> NutritionTargets => Set<NutritionTarget>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<MealLog> MealLogs => Set<MealLog>();
+    public DbSet<FavoriteMeal> FavoriteMeals => Set<FavoriteMeal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,0 +1,28 @@
+using FluentValidation;
+
+namespace Food.Application.Favorites.SaveFavoriteMeal;
+
+public sealed class SaveFavoriteMealCommandValidator : AbstractValidator<SaveFavoriteMealCommand>
+{
+    public SaveFavoriteMealCommandValidator()
+    {
+        RuleFor(x => x.UserId).GreaterThan(0);
+        RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(200);
+
+        RuleFor(x => x)
+            .Must(x => (x.RecipeId is not null) ^ (x.IngredientId is not null))
+            .WithMessage("Exactly one of RecipeId or IngredientId must be provided.");
+
+        When(x => x.RecipeId is not null, () =>
+        {
+            RuleFor(x => x.RecipeId!.Value).GreaterThan(0);
+            RuleFor(x => x.ServingsCount).NotNull().GreaterThan(0);
+        });
+
+        When(x => x.IngredientId is not null, () =>
+        {
+            RuleFor(x => x.IngredientId!.Value).GreaterThan(0);
+            RuleFor(x => x.QuantityGrams).NotNull().GreaterThan(0);
+        });
+    }
+}
