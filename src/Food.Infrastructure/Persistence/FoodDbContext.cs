@@ -1,3 +1,4 @@
+using Food.Domain.Activities;
 using Food.Domain.Ingredients;
 using Food.Domain.Logging;
 using Food.Domain.Nutrition;
@@ -20,6 +21,7 @@ public sealed class FoodDbContext : DbContext
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<MealLog> MealLogs => Set<MealLog>();
     public DbSet<FavoriteMeal> FavoriteMeals => Set<FavoriteMeal>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,3 +1,4 @@
+using Food.Application.Activities;
 using Food.Application.Logging;
 using Food.Domain.Common;
 
@@ -11,6 +12,8 @@ public sealed record MacroRemainder(decimal Calories, decimal ProteinG, decimal 
 public sealed record DailyDashboardDto(
     DateOnly Date,
     MacroBreakdown Target,
+    int ActivityCaloriesBurned,
     MacroBreakdown Consumed,
     MacroRemainder Remaining,
-    IReadOnlyCollection<MealLogDto> Meals);
+    IReadOnlyCollection<MealLogDto> Meals,
+    IReadOnlyCollection<ActivityLogDto> Activities);
