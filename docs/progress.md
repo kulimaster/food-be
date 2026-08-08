@@ -4,8 +4,8 @@ Status snapshot for picking this project back up without re-deriving context.
 **Update this file at the end of a work session** so it stays trustworthy — treat it
 as the first thing to read (and the last thing to update) in any future session.
 
-Last updated: 2026-08-08. Meal logging slice added this session; not yet committed to
-`origin/main` as of this writing (previous pushed commit: `8433535`).
+Last updated: 2026-08-08. Committed locally as `72dc032`, not yet pushed to
+`origin/main`.
 
 **Repo location:** `C:\Users\marti\repo\food-be` (moved from `D:\repo\food-be` at some
 point — a stale, untracked copy of `docs\` may still exist at the old `D:\` path;
