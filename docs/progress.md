@@ -4,10 +4,11 @@ Status snapshot for picking this project back up without re-deriving context.
 **Update this file at the end of a work session** so it stays trustworthy — treat it
 as the first thing to read (and the last thing to update) in any future session.
 
-Last updated: 2026-08-08. Weekly planner + Shopping list added this session — **this
-completes the full business-logic roadmap** from `business-description.md`. On top of
-Activity logging (`d9f0fdc`), Favorites (`bfb911e`), and Meal logging/Dashboard
-(`72dc032`/`7b640b9`); not yet committed as of this writing.
+Last updated: 2026-08-08. Committed locally as `f501c14` (Weekly planner + Shopping
+list — **this completes the full business-logic roadmap** from
+`business-description.md`), on top of Activity logging (`d9f0fdc`), Favorites
+(`bfb911e`), and Meal logging/Dashboard (`72dc032`/`7b640b9`); not yet pushed to
+`origin/main`.
 
 **Repo location:** `C:\Users\marti\repo\food-be` (moved from `D:\repo\food-be` at some
 point — a stale, untracked copy of `docs\` may still exist at the old `D:\` path;
