@@ -5,7 +5,7 @@ Status snapshot for picking this project back up without re-deriving context.
 as the first thing to read (and the last thing to update) in any future session.
 
 Last updated: 2026-08-08. Everything below is pushed to `origin/main`, latest commit
-`3c730a3` (Recipes slice itself lands in the commit right after this doc update).
+`b99105c`.
 
 **Repo location:** `C:\Users\marti\repo\food-be` (moved from `D:\repo\food-be` at some
 point — a stale, untracked copy of `docs\` may still exist at the old `D:\` path;
