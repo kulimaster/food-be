@@ -1,4 +1,5 @@
 using Food.Domain.Ingredients;
+using Food.Domain.Logging;
 using Food.Domain.Nutrition;
 using Food.Domain.Recipes;
 using Food.Domain.Users;
@@ -17,6 +18,7 @@ public sealed class FoodDbContext : DbContext
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<NutritionTarget> NutritionTargets => Set<NutritionTarget>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
+    public DbSet<MealLog> MealLogs => Set<MealLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

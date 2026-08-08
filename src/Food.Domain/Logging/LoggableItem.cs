@@ -14,6 +14,13 @@ public sealed class LoggableItem
     public Ingredient? Ingredient { get; }
     public Quantity? Quantity { get; }
 
+    // Parameterless: EF Core materialization only. The 4-arg constructor below can't be
+    // constructor-bound by EF because Recipe/Ingredient/Quantity are navigations, not
+    // scalar properties - EF uses this ctor instead and sets backing fields via reflection.
+    private LoggableItem()
+    {
+    }
+
     private LoggableItem(Recipe? recipe, decimal? servingsCount, Ingredient? ingredient, Quantity? quantity)
     {
         Recipe = recipe;

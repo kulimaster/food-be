@@ -1,5 +1,6 @@
 using Food.Application.Abstractions;
 using Food.Application.Ingredients;
+using Food.Application.Logging;
 using Food.Application.Recipes;
 using Food.Application.Users;
 using Food.Infrastructure.Persistence;
@@ -21,6 +22,7 @@ public static class DependencyInjection
 
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IRecipeRepository, RecipeRepository>();
+        services.AddScoped<IMealLogRepository, MealLogRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();
         services.AddScoped<INutritionTargetRepository, NutritionTargetRepository>();
